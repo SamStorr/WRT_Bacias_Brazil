@@ -96,7 +96,7 @@
           style: defaultStyle,
           onEachFeature: function (feature, layer) {
             // Check property attributes (adjust 'NAME' or 'BASIN_NAME' according to your GeoJSON keys)
-            const basinName = feature.properties ? (feature.properties.NAME || feature.properties.nome || feature.properties.basin || 'River Basin') : 'River Basin';
+            const basinName = feature.properties ? (feature.properties.NAME || feature.properties.name || feature.properties.basin || 'River Basin') : 'River Basin';
 
             // Bind tooltip
             layer.bindTooltip(`<strong>${basinName}</strong>`, {
