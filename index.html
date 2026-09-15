@@ -83,7 +83,7 @@
     }
 
     // 4. Load external GeoJSON file
-    fetch('https://github.com/SamStorr/WRT_Bacias_Brazil/blob/main/limites_bacias.json')
+    fetch('./limites_bacias.json')
       .then(response => {
         if (!response.ok) {
           throw new Error('Failed to load GeoJSON file: ' + response.statusText);
