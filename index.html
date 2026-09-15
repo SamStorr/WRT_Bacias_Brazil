@@ -92,7 +92,7 @@
         return response.json();
       })
       .then(data => {
-        const geojsonLayer = L.geojson(data, {
+        const geojsonLayer = L.geoJSON(data, {
           style: defaultStyle,
           onEachFeature: function (feature, layer) {
             // Check property attributes (adjust 'NAME' or 'BASIN_NAME' according to your GeoJSON keys)
