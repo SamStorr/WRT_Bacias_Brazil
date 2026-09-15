@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Brazil River Basins Map</title>
+
+  <!-- Leaflet CSS -->
+  <link 
+    rel="stylesheet" 
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin="" 
+  />
+
+  <style>
+    /* Ensure the container or iframe expands correctly */
+    body, html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      width: 100%;
+      font-family: Arial, sans-serif;
+    }
+
+    #map {
+      width: 100%;
+      height: 100vh; /* Full viewport height */
+    }
+
+    /* Style for tooltips and info boxes */
+    .info-tooltip {
+      background: rgba(255, 255, 255, 0.9);
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      padding: 6px 10px;
+      font-size: 13px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+  </style>
+</head>
+<body>
+
+  <div id="map"></div>
+
+  <!-- Leaflet JavaScript -->
+  <script 
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin="">
+  </script>
+
+  <script>
+    // 1. Initialize map centered over Brazil
+    const map = L.map('map').setView([-14.2350, -51.9253], 4);
+
+    // 2. Add base tile layer (CartoDB Positron provides a clean, neutral background)
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+      subdomains: 'abcd',
+      maxZoom: 19
+    }).addTo(map);
+
+    // 3. Define styling for the river basins
+    function defaultStyle(feature) {
+      return {
+        fillColor: '#2b5c8f', // Soft water blue
+        weight: 1.5,
+        opacity: 0.8,
+        color: '#1a3858',     // Border color
+        fillOpacity: 0.45
+      };
+    }
+
+    // Highlight style on mouseover
+    function highlightStyle() {
+      return {
+        fillColor: '#00a8e8',
+        weight: 2.5,
+        color: '#003459',
+        fillOpacity: 0.7
+      };
+    }
+
+    // 4. Load external GeoJSON file
+    fetch('river_basins.geojson')
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Failed to load GeoJSON file: ' + response.statusText);
+        }
+        return response.json();
+      })
+      .then(data => {
+        const geojsonLayer = L.geojson(data, {
+          style: defaultStyle,
+          onEachFeature: function (feature, layer) {
+            // Check property attributes (adjust 'NAME' or 'BASIN_NAME' according to your GeoJSON keys)
+            const basinName = feature.properties ? (feature.properties.NAME || feature.properties.nome || feature.properties.basin || 'River Basin') : 'River Basin';
+
+            // Bind tooltip
+            layer.bindTooltip(`<strong>${basinName}</strong>`, {
+              sticky: true,
+              className: 'info-tooltip'
+            });
+
+            // Interactive hover effects
+            layer.on({
+              mouseover: function (e) {
+                const targetLayer = e.target;
+                targetLayer.setStyle(highlightStyle());
+                if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
+                  targetLayer.bringToFront();
+                }
+              },
+              mouseout: function (e) {
+                geojsonLayer.resetStyle(e.target);
+              }
+            });
+          }
+        }).addTo(map);
+
+        // Fit map view tightly to the geographic bounds of the GeoJSON data
+        map.fitBounds(geojsonLayer.getBounds());
+      })
+      .catch(error => {
+        console.error('Error loading the river basin layer:', error);
+      });
+  </script>
+</body>
+</html>
