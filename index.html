@@ -95,23 +95,32 @@
         const geojsonLayer = L.geoJSON(data, {
           style: defaultStyle,
           onEachFeature: function (feature, layer) {
-            // Check property attributes (adjust 'NAME' or 'BASIN_NAME' according to your GeoJSON keys)
-            const basinName = feature.properties ? (feature.properties.NAME || feature.properties.name || feature.properties.basin || 'River Basin') : 'River Basin';
-
-            // Bind tooltip
-            layer.bindTooltip(`<strong>${basinName}</strong>`, {
+            const props = feature.properties || {};
+          
+            // Extract properties (adjust casing to match your exact GeoJSON keys if needed)
+            const name = props.NAME || props.nome || props.name || 'River Basin';
+            const population = props.Population || props.population || props.POPULATION || 'N/A';
+            const municipalities = props.Municipalities || props.municipalities || props.MUNICIPALITIES || 'N/A';
+          
+            // Build multi-line HTML tooltip content
+            const tooltipContent = `
+              <div style="font-family: Arial, sans-serif; line-height: 1.4;">
+                <strong style="font-size: 14px; color: #1a3858;">${name}</strong><br/>
+                <span style="font-size: 12px; color: #333;"><strong>Population:</strong> ${population}</span><br/>
+                <span style="font-size: 12px; color: #333;"><strong>Municipalities:</strong> ${municipalities}</span>
+              </div>
+            `;
+          
+            // Bind the formatted tooltip
+            layer.bindTooltip(tooltipContent, {
               sticky: true,
               className: 'info-tooltip'
             });
-
-            // Interactive hover effects
+          
+            // Hover styling events
             layer.on({
               mouseover: function (e) {
-                const targetLayer = e.target;
-                targetLayer.setStyle(highlightStyle());
-                if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
-                  targetLayer.bringToFront();
-                }
+                e.target.setStyle(highlightStyle());
               },
               mouseout: function (e) {
                 geojsonLayer.resetStyle(e.target);
